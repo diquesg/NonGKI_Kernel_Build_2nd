@@ -62,7 +62,7 @@ env:
 
   # 🟢 DEIXE EM BRANCO PARA O COMANDO "CP" LER DIRETO DA RAIZ DA SUA BRANCH SEM INVENTAR SUBPASTAS
   SUSFS_FOLDER_FIXED: 
-  SUSFS_PATCH_FIXED: "KernelSU-Next-Implement-SUSFS-v1.5.5-Universal,ksunext_core_hook_fixed"
+  SUSFS_PATCH_FIXED: ""
 
   REKERNEL_ENABLE: "false"
 
@@ -90,7 +90,7 @@ env:
 
   BUILD_OTHER_CONFIG: "false"
   MERGE_CONFIG_FILES: ""
-  FREE_MORE_SPACE: "true"
+  FREE_MORE_SPACE: "false"
 
 jobs:
   build-kernel:
