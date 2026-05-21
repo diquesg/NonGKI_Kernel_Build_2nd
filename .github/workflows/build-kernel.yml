@@ -64,9 +64,9 @@ env:
 
   REKERNEL_ENABLE: "false" # if u need Re:Kernel.
 
-  HOOK_METHOD: "syscall" # Manual hook method -> syscall.
+  HOOK_METHOD: "manual" # Manual hook method -> syscall.
 
-  KERNEL_PATCH: "false" # If your kernel version is <= 4.9, you have the option of enabling the patch to patch the kernel_write and kernel_read functions.
+  KERNEL_PATCH: "true" # If your kernel version is <= 4.9, you have the option of enabling the patch to patch the kernel_write and kernel_read functions.
 
   KPM_ENABLE: "false" # Anyone devices.
   KPM_INLINE: "false" # Only use it for SukiSU-Ultra.
@@ -120,8 +120,7 @@ jobs:
           echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/davinci_defconfig
           echo "CONFIG_KSU_DEBUG=y" >> arch/arm64/configs/davinci_defconfig
           echo "HAVE_KSU_HOOK := 0" >> drivers/kernelsu/Kbuild
-          echo "ccflags-y += -DCONFIG_KSU_MANUAL_HOOK -DKSU_HAVE_HOOK" >> drivers/kernelsu/Kbuild
-
+          echo "ccflags-y += -DCONFIG_KSU_MANUAL_HOOK -DKSU_HAVE_HOOK -DCONFIG_KSU_NEXT" >> drivers/kernelsu/Kbuild
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
