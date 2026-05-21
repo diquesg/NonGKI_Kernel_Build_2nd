@@ -15,7 +15,7 @@ env:
   KERNEL_SOURCE : "https://github.com/diquesg/android_kernel_xiaomi_sm6150.git"
   KERNEL_BRANCH : "sixteen-qpr2"
 
-  CLANG_SOURCE : "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.7/LLVM-19.1.7-Linux-X64.tar.xz"
+  CLANG_SOURCE : "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman"
   CLANG_BRANCH : ""
 
   GCC_GNU : false
@@ -121,12 +121,16 @@ jobs:
       - name: 🪛 Extra Kernel Options
         run: |
           cd $GITHUB_WORKSPACE/device_kernel
+          # 1. Ativar as camadas virtuais que a sua ROM exige
           echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/davinci_defconfig
           echo "CONFIG_KSU_DEBUG=y" >> arch/arm64/configs/davinci_defconfig
           
-          # 🟢 FORÇAR AS SEPOLICIES DIRETO NO MAKEFILE DO DRIVER CLONADO
+          # 2. Forçar as SEPolicies do Next direto no Makefile do driver clonado
           echo "HAVE_KSU_HOOK := 0" >> drivers/kernelsu/Kbuild
           echo "ccflags-y += -DCONFIG_KSU_MANUAL_HOOK -DKSU_HAVE_HOOK -DCONFIG_KSU_NEXT" >> drivers/kernelsu/Kbuild
+
+          # 🟢 APROVEITAR APENAS O COMANDO UNIVERSAL DE LIMPEZA DE MEMÓRIA (SEGURO E ISOLADO):
+          sed -i '/#ifdef CONFIG_KSU_SUSFS/,/#endif/d' fs/dcache.c
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
