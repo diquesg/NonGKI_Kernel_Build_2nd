@@ -32,8 +32,8 @@ env:
   KERNELSU_SOURCE : ""
   KERNELSU_BRANCH : ""
 
-  KERNELSU_AUTO_GET : "true" # if u want easy setting kernelsu, u can true.
-  KERNELSU_AUTO_FORK : "next" # magic, rsuntk, next, resukisu and sukisu
+  KERNELSU_AUTO_GET : "true"
+  KERNELSU_AUTO_FORK : "next"
 
   SUSFS_ENABLE : true
   SUSFS_FIXED : true
@@ -49,50 +49,54 @@ env:
   ROM_TEXT : "PixelOS_A16"
 
   # Other env
-  PYTHON_VERSION: "3" # Only 2(Ubuntu 22.04 and Ubuntu 20.04) or 3(Any OS Versions).
+  PYTHON_VERSION: "3"
 
-  PACK_METHOD: "Anykernel3" # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
-  PACK_KMODULES: "false" # if u want pack kernel modules (.ko) into Anykernel3.
+  PACK_METHOD: "Anykernel3"
+  PACK_KMODULES: "false"
 
-  KERNELSU_METHOD: "shell" # shell, manual and only.
+  KERNELSU_METHOD: "shell"
 
-  PATCHES_SOURCE: "diquesg/NonGKI_Kernel_Patches" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
-  PATCHES_BRANCH: "mi_kernel" # [your_branch] -> main
+  # 🟢 SEUS PATCHES LEGÍTIMOS DO NEXT CONFIRMADOS AQUI
+  PATCHES_SOURCE: "diquesg/NonGKI_Kernel_Patches"
+  PATCHES_BRANCH: "mi_kernel"
 
-  SUSFS_FOLDER_FIXED: "" # Fill in your patch prefix directory here. Leave it blank if there isn't one. -> your_folder
-  SUSFS_PATCH_FIXED: "" # Fill in your patches here. If there are multiple patches, please separate them with a comma. Leave it blank if there isn't one. -> patch1,patch2
+  # 🟢 DEIXE EM BRANCO PARA O COMANDO "CP" LER DIRETO DA RAIZ DA SUA BRANCH SEM INVENTAR SUBPASTAS
+  SUSFS_FOLDER_FIXED: 
+  SUSFS_PATCH_FIXED: "KernelSU-Next-Implement-SUSFS-v1.5.5-Universal,ksunext_core_hook_fixed"
 
-  REKERNEL_ENABLE: "false" # if u need Re:Kernel.
+  REKERNEL_ENABLE: "false"
 
-  HOOK_METHOD: "syscall" # Manual hook method -> syscall.
+  # 🟢 MUDAR PARA MANUAL PARA CASAR COM O EXTRA KERNEL OPTIONS
+  HOOK_METHOD: "manual"
 
-  KERNEL_PATCH: "true" # If your kernel version is <= 4.9, you have the option of enabling the patch to patch the kernel_write and kernel_read functions.
+  KERNEL_PATCH: "false"
 
-  KPM_ENABLE: "false" # Anyone devices.
-  KPM_INLINE: "false" # Only use it for SukiSU-Ultra.
-  KPM_KPATCH_NEXT: "false" # If u want hook KPatch-Next in build step.
-  KPM_PATCH_SOURCE: "" # If u want to use KPM Inline,so you need set patch exec file source -> raw.githubusercontent.com/Test/Test/patch .
+  KPM_ENABLE: "false"
+  KPM_INLINE: "false"
+  KPM_KPATCH_NEXT: "false"
+  KPM_PATCH_SOURCE: ""
 
-  BASEBAND_GUARD_ENABLE: "false" #if u want prevent unauthorized writes to critical partitions/device nodes.
-  BASEBAND_GUARD_BOOT: "false" #if u want to protect boot partition.
+  BASEBAND_GUARD_ENABLE: "false"
+  BASEBAND_GUARD_BOOT: "false"
 
-  HIDE_STUFF: "false" # hide some of the features
+  HIDE_STUFF: "false"
 
-  GENERATE_DTB: "true" # if u kernel need DTB , but cannot auto generate it. (Only Anykernel3).
-  GENERATE_CHIP: "qcom" # only supported for qcom and mediatek.
+  GENERATE_DTB: "true"
+  GENERATE_CHIP: "qcom"
 
-  BUILD_DEBUGGER: "true" # Output build errors.
-  SKIP_PATCH: "true" # Ignore errors found in Patch Debugger.
+  BUILD_DEBUGGER: "true"
+  
+  # 🟢 DEIXE EM TRUE PARA O ROBÔ LIMPAR OS REJEITOS DE LINHA DO CMDLINE E AVANÇAR O BUILD
+  SKIP_PATCH: "true"
 
-  BUILD_OTHER_CONFIG: "false" # Merge config files.
+  BUILD_OTHER_CONFIG: "false"
   MERGE_CONFIG_FILES: ""
-  FREE_MORE_SPACE: "false" # if u want get more space, enabled it.
+  FREE_MORE_SPACE: "true"
 
 jobs:
   build-kernel:
     name: Build Kernel
-    runs-on: ubuntu-latest # u can changed to ubuntu 22.04, and need container set ubuntu-latest
-    # container: archlinux/archlinux:latest # if u need use arch linux -> archlinux/archlinux:latest or ubuntu 20.04 -> ubuntu:focal
+    runs-on: ubuntu-latest
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
       CCACHE_NOHASHDIR: "true"
@@ -113,6 +117,16 @@ jobs:
 
       - name: 🔗 Patch for no-kprobe
         uses: ./.github/workflows/patch-no-kprobe
+
+      - name: 🪛 Extra Kernel Options
+        run: |
+          cd $GITHUB_WORKSPACE/device_kernel
+          echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/davinci_defconfig
+          echo "CONFIG_KSU_DEBUG=y" >> arch/arm64/configs/davinci_defconfig
+          
+          # 🟢 FORÇAR AS SEPOLICIES DIRETO NO MAKEFILE DO DRIVER CLONADO
+          echo "HAVE_KSU_HOOK := 0" >> drivers/kernelsu/Kbuild
+          echo "ccflags-y += -DCONFIG_KSU_MANUAL_HOOK -DKSU_HAVE_HOOK -DCONFIG_KSU_NEXT" >> drivers/kernelsu/Kbuild
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
