@@ -117,9 +117,13 @@ jobs:
       - name: 🪛 Extra Kernel Options
         run: |
           cd $GITHUB_WORKSPACE/device_kernel
-          # 🟢 INJETAR AS SUAS FLAGS DO DEFCONFIG EM TEMPO DE EXECUÇÃO
+          # 🟢 FORÇAR A ATIVAÇÃO DO OVERLAYFS
           echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/davinci_defconfig
           echo "CONFIG_KSU_DEBUG=y" >> arch/arm64/configs/davinci_defconfig
+          
+          # 🟢 FORÇAR O KBUILD DO DRIVER A GERAR AS SEPOLICIES
+          echo "HAVE_KSU_HOOK := 0" >> drivers/kernelsu/Kbuild
+          echo "ccflags-y += -DCONFIG_KSU_MANUAL_HOOK -DKSU_HAVE_HOOK" >> drivers/kernelsu/Kbuild
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
