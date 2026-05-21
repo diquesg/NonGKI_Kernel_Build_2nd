@@ -66,8 +66,7 @@ env:
 
   REKERNEL_ENABLE: "false"
 
-  # 🟢 MUDAR PARA MANUAL PARA CASAR COM O EXTRA KERNEL OPTIONS
-  HOOK_METHOD: "manual"
+  HOOK_METHOD: "syscall"
 
   KERNEL_PATCH: "false"
 
