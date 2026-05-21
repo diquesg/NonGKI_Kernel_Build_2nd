@@ -1,0 +1,169 @@
+name: Build Xiaomi Mi 9T - KernelSU-Next + SUSFS
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  # ─── Device ────────────────────────────────────────────────────────────────
+  DEVICE_NAME : "mi_9t"
+  DEVICE_CODENAME : "davinci"
+
+  # Flags de compilação — padrão para arm64 com Clang puro
+  CUSTOM_CMDS : "CLANG_TRIPLE=aarch64-linux-gnu-"
+  EXTRA_CMDS :  "LD=ld.lld LLVM=1 LLVM_IAS=1"
+
+  # ─── Kernel source ─────────────────────────────────────────────────────────
+  # ⚠️  VERIFICAR: use o repo e branch que o PixelOS/maintainer do davinci usa.
+  #     Exemplos comuns para SM6150:
+  #       https://github.com/PixelOS-Devices/kernel_xiaomi_sm6150.git
+  #       https://github.com/LineageOS/android_kernel_xiaomi_sm6150.git
+  KERNEL_SOURCE : "https://github.com/diquesg/android_kernel_xiaomi_sm6150.git"
+  KERNEL_BRANCH : "sixteen-qpr2"
+
+  # ─── Toolchain ─────────────────────────────────────────────────────────────
+  # Clang 19 oficial LLVM. Se der erro de build em 4.14, substitua por:
+  #   Neutron Clang 18: https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/11042023/neutron-clang-11042023.tar.zst
+  #   Proton Clang 13:  https://github.com/kdrag0n/proton-clang/archive/refs/heads/master.tar.gz
+  CLANG_SOURCE: "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.7/LLVM-19.1.7-Linux-X64.tar.xz"
+  CLANG_BRANCH: ""
+
+  # GCC desabilitado — Clang puro via LLVM=1
+  GCC_GNU:        false
+  GCC_64_SOURCE:  "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9.git"
+  GCC_64_BRANCH:  "android12L-release"
+  GCC_32_SOURCE:  "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9.git"
+  GCC_32_BRANCH:  "android12L-release"
+
+  # ─── Defconfig ─────────────────────────────────────────────────────────────
+  # ⚠️  VERIFICAR: cheque arch/arm64/configs/ no seu kernel source.
+  #     Comum para davinci: "vendor/davinci_defconfig" ou só "davinci_defconfig"
+  DEFCONFIG_SOURCE:       ""
+  DEFCONFIG_NAME:         "davinci_defconfig"   # ⚠️  VERIFICAR
+  DEFCONFIG_ORIGIN_IMAGE: ""
+  DEFCONFIG_FROM_BOOT:    false
+
+  # ─── KernelSU ──────────────────────────────────────────────────────────────
+  # KERNELSU_AUTO_FORK: "next" = KernelSU-Next (rsuntk/backslashxx fork)
+  # Deixe SOURCE e BRANCH em branco — o script baixa automaticamente via AUTO_GET
+  KERNELSU_SOURCE: ""
+  KERNELSU_BRANCH: ""
+  KERNELSU_AUTO_GET:  "true"
+  KERNELSU_AUTO_FORK: "next"
+
+  # ─── SUSFS ─────────────────────────────────────────────────────────────────
+  # SUSFS_ENABLE: true  → ativa a integração do SUSFS no build
+  # SUSFS_FIXED: false  → o script tenta aplicar os patches automaticamente
+  #
+  # ⚠️  4.14 NON-GKI: se o patch automático falhar (erro na etapa "Patch Kernel
+  #     of SUSFS"), mude SUSFS_FIXED para true e preencha:
+  #       PATCHES_SOURCE → seu fork de patches adaptados para o davinci 4.14
+  #       PATCHES_BRANCH → branch do seu fork
+  #       SUSFS_PATCH_FIXED → nome(s) do(s) patch(es), ex: "susfs_4.14.patch"
+  SUSFS_ENABLE: true
+  SUSFS_FIXED:  false
+
+  # ─── AnyKernel3 ────────────────────────────────────────────────────────────
+  AK3_SOURCE: "https://github.com/osm0sis/AnyKernel3.git"
+  AK3_BRANCH: "master"
+  BOOT_SOURCE: ""
+
+  # DTBO: false — davinci usa dtbo, mas o AK3 normalmente não precisa empacotar
+  # Se o seu AK3 customizado precisar, mude para true
+  NEED_DTBO:      false
+  NEED_SAFE_DTBO: false
+
+  ROM_TEXT: "PixelOS_Android16"
+
+  # ─── Build config ──────────────────────────────────────────────────────────
+  PYTHON_VERSION: "3"
+  PACK_METHOD:    "Anykernel3"
+  PACK_KMODULES:  "false"
+  KERNELSU_METHOD: "shell"
+
+  # Patches manuais — só relevante se SUSFS_FIXED: true
+  PATCHES_SOURCE: "diquesg/NonGKI_Kernel_Patches" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
+  PATCHES_BRANCH: "mi_kernel"
+
+  SUSFS_FOLDER_FIXED: ""
+  SUSFS_PATCH_FIXED:  ""   # ex: "susfs_davinci_4.14.patch" se SUSFS_FIXED: true
+
+  # ─── Extras ────────────────────────────────────────────────────────────────
+  REKERNEL_ENABLE: "false"
+
+  # syscall = correto para non-GKI 4.14 (kprobes são instáveis nessa versão)
+  HOOK_METHOD: "syscall"
+
+  # KERNEL_PATCH: só para kernels <= 4.9 — não necessário aqui
+  KERNEL_PATCH: "false"
+
+  KPM_ENABLE:       "false"
+  KPM_INLINE:       "false"
+  KPM_KPATCH_NEXT:  "false"
+  KPM_PATCH_SOURCE: "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU_patch/refs/heads/main/kpm/patch_linux"
+
+  BASEBAND_GUARD_ENABLE: "false"
+  BASEBAND_GUARD_BOOT:   "false"
+
+  HIDE_STUFF: "false"
+
+  # DTB — SM6150/davinci gera DTB automaticamente; só mude se o build reclamar
+  GENERATE_DTB:   "false"
+  GENERATE_CHIP:  "qcom"
+
+  # Ative BUILD_DEBUGGER na primeira tentativa para ver erros com mais detalhe
+  BUILD_DEBUGGER: "true"
+  SKIP_PATCH:     "false"
+
+  BUILD_OTHER_CONFIG:  "false"
+  MERGE_CONFIG_FILES:  ""
+
+  FREE_MORE_SPACE: "false"
+
+jobs:
+  build-kernel:
+    name: Build Kernel
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_HARDLINK: "true"
+
+    steps:
+      - name: ⏰ Checkout repository
+        uses: actions/checkout@v6
+
+      - name: ⌛️ Compilation environment preparation
+        uses: ./.github/workflows/build-env
+
+      - name: ⚙️ Get neccssary tools
+        uses: ./.github/workflows/build-ready
+
+      - name: 🪝 Patch Kernel of SUSFS
+        uses: ./.github/workflows/patch-susfs
+
+      - name: 🔗 Patch for no-kprobe
+        uses: ./.github/workflows/patch-no-kprobe
+
+      - name: 🪛 Extra Kernel Options
+        run: |
+          cd $GITHUB_WORKSPACE/device_kernel
+          # Nada por enquanto — adicione configs extras aqui se necessário
+
+      - name: 🧰 Patch Kernel of Re:Kernel
+        uses: ./.github/workflows/patch-rekernel
+
+      - name: 🔒 Patch Kernel of Baseband Guard
+        uses: ./.github/workflows/patch-baseband-guard
+
+      - name: 🔧 Patch Hide Stuff
+        uses: ./.github/workflows/patch-hide-stuff
+
+      - name: 🚀 Build Process
+        uses: ./.github/workflows/build-process
+
+      - name: 🔩 Pack Process
+        uses: ./.github/workflows/pack-process
+
+      - name: ✏️ Upload Artifacts
+        uses: ./.github/workflows/upload-files
