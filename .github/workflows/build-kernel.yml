@@ -15,7 +15,7 @@ env:
   KERNEL_SOURCE : "https://github.com/diquesg/android_kernel_xiaomi_sm6150.git"
   KERNEL_BRANCH : "sixteen-qpr2"
 
-  CLANG_SOURCE : "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman"
+  CLANG_SOURCE : "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r530567.tar.gz"
   CLANG_BRANCH : ""
 
   GCC_GNU : false
