@@ -57,10 +57,10 @@ env:
   KERNELSU_METHOD: "shell" # shell, manual and only.
 
   PATCHES_SOURCE: "JackA1ltman/NonGKI_Patcher" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
-  PATCHES_BRANCH: "main" # [your_branch] -> main
+  PATCHES_BRANCH: "mi_kernel" # [your_branch] -> main
 
   SUSFS_FOLDER_FIXED: "" # Fill in your patch prefix directory here. Leave it blank if there isn't one. -> your_folder
-  SUSFS_PATCH_FIXED: "" # Fill in your patches here. If there are multiple patches, please separate them with a comma. Leave it blank if there isn't one. -> patch1,patch2
+  SUSFS_PATCH_FIXED: "KernelSU-Next-Implement-SUSFS-v1.5.5-Universal,ksunext_core_hook_fixed" # Fill in your patches here. If there are multiple patches, please separate them with a comma. Leave it blank if there isn't one. -> patch1,patch2
 
   REKERNEL_ENABLE: "false" # if u need Re:Kernel.
 
@@ -116,14 +116,9 @@ jobs:
 
       - name: 🪛 Extra Kernel Options
         run: |
+          # Only ${{ env.DEVICE_NAME }} use it.
           cd $GITHUB_WORKSPACE/device_kernel
-          # 🟢 FORÇAR A ATIVAÇÃO DO OVERLAYFS
-          echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/davinci_defconfig
-          echo "CONFIG_KSU_DEBUG=y" >> arch/arm64/configs/davinci_defconfig
-          
-          # 🟢 FORÇAR O KBUILD DO DRIVER A GERAR AS SEPOLICIES
-          echo "HAVE_KSU_HOOK := 0" >> drivers/kernelsu/Kbuild
-          echo "ccflags-y += -DCONFIG_KSU_MANUAL_HOOK -DKSU_HAVE_HOOK" >> drivers/kernelsu/Kbuild
+          # Nothing
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
