@@ -116,9 +116,12 @@ jobs:
 
       - name: 🪛 Extra Kernel Options
         run: |
-          # Only ${{ env.DEVICE_NAME }} use it.
           cd $GITHUB_WORKSPACE/device_kernel
-          # Nothing
+          echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/davinci_defconfig
+          echo "CONFIG_KSU_DEBUG=y" >> arch/arm64/configs/davinci_defconfig
+          echo "HAVE_KSU_HOOK := 0" >> drivers/kernelsu/Kbuild
+          echo "ccflags-y += -DCONFIG_KSU_MANUAL_HOOK -DKSU_HAVE_HOOK" >> drivers/kernelsu/Kbuild
+
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
