@@ -148,7 +148,8 @@ jobs:
       - name: 🪛 Extra Kernel Options
         run: |
           cd $GITHUB_WORKSPACE/device_kernel
-          # Nada por enquanto — adicione configs extras aqui se necessário
+          scripts/config --file arch/arm64/configs/davinci_defconfig \
+          --disable CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
