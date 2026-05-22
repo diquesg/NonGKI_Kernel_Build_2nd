@@ -79,7 +79,7 @@ env:
   PYTHON_VERSION: "3"
   PACK_METHOD:    "Anykernel3"
   PACK_KMODULES:  "false"
-  KERNELSU_METHOD: "shell"
+  KERNELSU_METHOD: "manual"
 
   # Patches manuais — só relevante se SUSFS_FIXED: true
   PATCHES_SOURCE: "diquesg/NonGKI_Kernel_Patches" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
