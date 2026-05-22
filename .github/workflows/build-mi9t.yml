@@ -46,9 +46,9 @@ env:
   # ─── KernelSU ──────────────────────────────────────────────────────────────
   # KERNELSU_AUTO_FORK: "next" = KernelSU-Next (rsuntk/backslashxx fork)
   # Deixe SOURCE e BRANCH em branco — o script baixa automaticamente via AUTO_GET
-  KERNELSU_SOURCE: ""
-  KERNELSU_BRANCH: ""
-  KERNELSU_AUTO_GET:  "true"
+  KERNELSU_SOURCE: "https://github.com/KernelSU-Next/KernelSU-Next.git"
+  KERNELSU_BRANCH: "legacy-susfs"
+  KERNELSU_AUTO_GET:  "false"
   KERNELSU_AUTO_FORK: "next"
 
   # ─── SUSFS ─────────────────────────────────────────────────────────────────
@@ -148,6 +148,7 @@ jobs:
       - name: 🪛 Extra Kernel Options
         run: |
           cd $GITHUB_WORKSPACE/device_kernel
+          echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./arch/arm64/configs/davinci_defconfig
           scripts/config --file arch/arm64/configs/davinci_defconfig \
           --disable CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
 
