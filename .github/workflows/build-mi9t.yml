@@ -47,7 +47,7 @@ env:
   # KERNELSU_AUTO_FORK: "next" = KernelSU-Next (rsuntk/backslashxx fork)
   # Deixe SOURCE e BRANCH em branco — o script baixa automaticamente via AUTO_GET
   KERNELSU_SOURCE: "https://github.com/KernelSU-Next/KernelSU-Next.git"
-  KERNELSU_BRANCH: "legacy-susfs"
+  KERNELSU_BRANCH: "legacy"
   KERNELSU_AUTO_GET:  "false"
   KERNELSU_AUTO_FORK: "next"
 
