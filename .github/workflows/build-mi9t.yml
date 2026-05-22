@@ -61,7 +61,7 @@ env:
   #       PATCHES_BRANCH → branch do seu fork
   #       SUSFS_PATCH_FIXED → nome(s) do(s) patch(es), ex: "susfs_4.14.patch"
   SUSFS_ENABLE: true
-  SUSFS_FIXED:  true
+  SUSFS_FIXED:  false
 
   # ─── AnyKernel3 ────────────────────────────────────────────────────────────
   AK3_SOURCE: "https://github.com/osm0sis/AnyKernel3.git"
@@ -113,7 +113,7 @@ env:
 
   # Ative BUILD_DEBUGGER na primeira tentativa para ver erros com mais detalhe
   BUILD_DEBUGGER: "true"
-  SKIP_PATCH:     "false"
+  SKIP_PATCH:     "true"
 
   BUILD_OTHER_CONFIG:  "false"
   MERGE_CONFIG_FILES:  ""
