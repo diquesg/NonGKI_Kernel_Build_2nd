@@ -150,7 +150,11 @@ jobs:
           cd $GITHUB_WORKSPACE/device_kernel
           echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./arch/arm64/configs/davinci_defconfig
           scripts/config --file arch/arm64/configs/davinci_defconfig \
-          --disable CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
+            --disable CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
+          # Fix macro ausente no SUSFS patch
+          if ! grep -q "SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK" include/linux/susfs.h 2>/dev/null; then
+            sed -i '/^#endif/i #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT\n#define SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK(inode) (0)\n#endif' include/linux/susfs.h
+          fi
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
