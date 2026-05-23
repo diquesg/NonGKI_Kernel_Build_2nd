@@ -1,5 +1,4 @@
 name: 'Patch Kernel for no-kprobe.'
-
 runs:
   using: 'composite'
   steps:
@@ -7,24 +6,34 @@ runs:
         shell: bash
         run: |
           cd $GITHUB_WORKSPACE/device_kernel
-
           # Detect SuSFS is used to enable the SuSFS inline hook
-          if [[ "${{ env.SUSFS_ENABLE }}" == "true" ]] && [[ "${{ env.KERNELSU_AUTO_FORK }}" != "next" ]]; then
-              bash susfs_inline_hook_patches.sh ./
-              echo "[+] executed SuSFS inline hook successfully."
-              if [[ "${{ env.HIDE_STUFF }}" != "true" ]]; then
-                  bash backport_selinux_patches.sh
-                  echo "[+] Patched SELinux."
-              fi
-          elif [[ "${{ env.HOOK_METHOD }}" == "syscall" ]] || \
-               ( [[ "${{ env.SUSFS_ENABLE }}" == "true" ]] && [[ "${{ env.KERNELSU_AUTO_FORK }}" == "next" ]] ); then
-              bash syscall_hook_patches.sh ./
-              echo "[+] executed syscall hook successfully."
-              if [[ "${{ env.HIDE_STUFF }}" != "true" ]]; then
-                  bash backport_selinux_patches.sh
-                  echo "[+] Patched SELinux."
-              fi
+          if [[ ${{ env.SUSFS_ENABLE }} == "true" ]] && [[ "${{ env.KERNELSU_AUTO_FORK }}" != "next" ]]; then
+            # Core
+            cp /tmp/Patches/susfs_inline_hook_patches.sh ./
+            bash susfs_inline_hook_patches.sh ./
+            echo "[+] executed SuSFS inline hook successfully."
+            if [[ "${{ env.BASEBAND_GUARD_ENABLE }}" != "true" ]]; then
+                cp /tmp/Patches/backport_selinux_patches.sh ./
+                bash backport_selinux_patches.sh
+                echo "[+] Patched SELinux."
+            else
+                echo "[-] Skipped SELinux Patch."
+            fi
+          # Check syscall hook (also used for KernelSU-Next legacy-susfs)
+          elif [[ ${{ env.HOOK_METHOD }} == "syscall" ]] || \
+               ( [[ ${{ env.SUSFS_ENABLE }} == "true" ]] && [[ "${{ env.KERNELSU_AUTO_FORK }}" == "next" ]] ); then
+            # Core
+            cp /tmp/Patches/syscall_hook_patches.sh ./
+            bash syscall_hook_patches.sh ./
+            echo "[+] executed syscall hook successfully."
+            if [[ "${{ env.BASEBAND_GUARD_ENABLE }}" != "true" ]]; then
+                cp /tmp/Patches/backport_selinux_patches.sh ./
+                bash backport_selinux_patches.sh
+                echo "[+] Patched SELinux."
+            else
+                echo "[-] Skipped SELinux Patch."
+            fi
           else
-              echo "[-] please input a vaild option!"
-              false
+            echo "[-] please input a vaild option!"
+            false
           fi
