@@ -152,9 +152,22 @@ jobs:
           scripts/config --file arch/arm64/configs/davinci_defconfig \
             --disable CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
           # Fix macro ausente no SUSFS patch
-          if ! grep -q "SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK" include/linux/susfs.h 2>/dev/null; then
-            sed -i '/^#endif/i #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT\n#define SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK(inode) (0)\n#endif' include/linux/susfs.h
-          fi
+          python3 - << 'EOF'
+          import sys
+          path = 'include/linux/susfs.h'
+          macro = 'SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK'
+          with open(path, 'r') as f:
+              content = f.read()
+          if macro not in content:
+              patch = '\n#ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT\n#define SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK(inode) (0)\n#endif\n'
+              idx = content.rfind('#endif')
+              content = content[:idx] + patch + content[idx:]
+              with open(path, 'w') as f:
+                  f.write(content)
+              print(f'[+] Added {macro} to susfs.h')
+          else:
+              print(f'[-] {macro} already present')
+          EOF
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
