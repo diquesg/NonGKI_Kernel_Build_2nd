@@ -151,14 +151,9 @@ jobs:
           echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./arch/arm64/configs/davinci_defconfig
           scripts/config --file arch/arm64/configs/davinci_defconfig \
             --disable CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
-          echo "=== susfs.h exists? ==="
-          ls -la include/linux/susfs.h 2>/dev/null || echo "FILE NOT FOUND"
-          echo "=== macro present? ==="
-          grep "SUSFS_IS_INODE_OPEN_REDIRECT" include/linux/susfs.h || echo "MACRO NOT FOUND"
-          echo "=== appending ==="
           grep -q "SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK" include/linux/susfs.h || \
             echo "#define SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK(inode) (0)" >> include/linux/susfs.h
-          echo "=== done ==="
+          printf '\nvoid susfs_run_sus_path_loop(void) {}\n' >> fs/susfs.c
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
