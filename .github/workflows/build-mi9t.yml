@@ -144,16 +144,14 @@ jobs:
 
       - name: 🔗 Patch for no-kprobe
         uses: ./.github/workflows/patch-no-kprobe
-
+      
       - name: 🪛 Extra Kernel Options
         run: |
           cd $GITHUB_WORKSPACE/device_kernel
           echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./arch/arm64/configs/davinci_defconfig
           scripts/config --file arch/arm64/configs/davinci_defconfig \
             --disable CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
-          grep -q "SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK" include/linux/susfs.h || \
-            echo "#define SUSFS_IS_INODE_OPEN_REDIRECT_WITHOUT_UID_CHECK(inode) (0)" >> include/linux/susfs.h
-          printf '\nvoid susfs_run_sus_path_loop(void) {}\n' >> fs/susfs.c
+          sed -i 's/^static void susfs_run_sus_path_loop(void)/void susfs_run_sus_path_loop(void)/' fs/susfs.c
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
